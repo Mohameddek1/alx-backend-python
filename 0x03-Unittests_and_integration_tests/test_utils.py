@@ -23,7 +23,9 @@ class TestAccessNestedMap(unittest.TestCase):
         ({}, ("a",), KeyError),
         ({"a": 1}, ("a", "b"), KeyError),
     ])
-    def test_access_nested_map_exception(self, nested_map, path, expected_exception):
+    def test_access_nested_map_exception(
+        self, nested_map, path, expected_exception
+    ):
         """Test exceptions raised correctly"""
         with self.assertRaises(expected_exception):
             access_nested_map(nested_map, path)
@@ -37,16 +39,14 @@ class TestGetJson(unittest.TestCase):
         ("http://holberton.io", {"payload": False}),
     ])
     def test_get_json(self, test_url, test_payload):
-        """Test that get_json returns the expected payload and calls requests.get"""
+        """Test that get_json returns the expected payload"""
         with patch("utils.requests.get") as mock_get:
-            # Mocking the response of requests.get().json()
             mock_response = Mock()
             mock_response.json.return_value = test_payload
             mock_get.return_value = mock_response
 
             result = get_json(test_url)
 
-            # Verify requests.get called once with correct argument
             mock_get.assert_called_once_with(test_url)
             self.assertEqual(result, test_payload)
 
@@ -67,10 +67,7 @@ class TestMemoize(unittest.TestCase):
 
         with patch.object(TestClass, "a_method", return_value=42) as mock_method:
             obj = TestClass()
-
-            # First call should call a_method
             result1 = obj.a_property
-            # Second call should use cached value
             result2 = obj.a_property
 
             self.assertEqual(result1, 42)
