@@ -7,14 +7,13 @@ from parameterized import parameterized_class
 from fixtures import TEST_PAYLOAD
 from client import GithubOrgClient
 
-@parameterized_class([
-    {
-        "org_payload": TEST_PAYLOAD[0][0],
-        "repos_payload": TEST_PAYLOAD[0][1],
-        "expected_repos": TEST_PAYLOAD[0][2],
-        "apache2_repos": TEST_PAYLOAD[0][3]
-    }
-])
+
+@parameterized_class([{
+    "org_payload": TEST_PAYLOAD[0][0],
+    "repos_payload": TEST_PAYLOAD[0][1],
+    "expected_repos": TEST_PAYLOAD[0][2],
+    "apache2_repos": TEST_PAYLOAD[0][3]
+}])
 class TestIntegrationGithubOrgClient(unittest.TestCase):
     """Integration test class for GithubOrgClient.public_repos."""
 
@@ -32,7 +31,9 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
                 return cls.repos_payload
             return None
 
-        cls.mock_get.side_effect = lambda url: Mock(json=lambda: get_json_side_effect(url))
+        cls.mock_get.side_effect = (
+            lambda url: Mock(json=lambda: get_json_side_effect(url))
+        )
 
     @classmethod
     def tearDownClass(cls):
@@ -50,6 +51,7 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
         client = GithubOrgClient("google")
         repos = client.public_repos(license="apache-2.0")
         self.assertEqual(repos, self.apache2_repos)
+
 
 if __name__ == "__main__":
     unittest.main()
