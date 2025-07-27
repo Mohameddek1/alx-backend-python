@@ -1,15 +1,20 @@
 import logging
+import os
 from datetime import datetime
 
 class RequestLoggingMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
-        # Configure the logger
-        logging.basicConfig(
-            filename='requests.log',
-            level=logging.INFO,
-            format='%(message)s'
-        )
+        # Set log file path to project directory
+        log_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        log_file = os.path.join(log_dir, "requests.log")
+        # Only configure logging if not already configured
+        if not logging.getLogger().hasHandlers():
+            logging.basicConfig(
+                filename=log_file,
+                level=logging.INFO,
+                format='%(message)s'
+            )
 
     def __call__(self, request):
         user = request.user if getattr(request, 'user', None) and getattr(request.user, 'is_authenticated', False) and request.user.is_authenticated else "Anonymous"
