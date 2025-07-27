@@ -1,6 +1,7 @@
 from rest_framework import viewsets, status, filters
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.status import HTTP_403_FORBIDDEN
 from .models import Conversation, Message
 from .serializers import ConversationSerializer, MessageSerializer
 from .permissions import IsParticipantOfConversation
@@ -13,6 +14,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['participants__username']
     ordering_fields = ['created_at']
+    lookup_field = 'conversation_id'  # Ensure conversation_id is used for lookups
 
     def create(self, request, *args, **kwargs):
         participants = request.data.get('participants')
@@ -47,8 +49,17 @@ class MessageViewSet(viewsets.ModelViewSet):
         return Message.objects.filter(conversation__participants=self.request.user).select_related('conversation', 'sender')
 
     def create(self, request, *args, **kwargs):
+        conversation_id = request.data.get('conversation_id')
+        if not conversation_id:
+            return Response({'error': 'conversation_id is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            conversation = Conversation.objects.get(conversation_id=conversation_id)
+        except Conversation.DoesNotExist:
+            return Response({'error': 'Conversation not found.'}, status=status.HTTP_404_NOT_FOUND)
+        if request.user not in conversation.participants.all():
+            return Response({'detail': 'You are not a participant of this conversation.'}, status=HTTP_403_FORBIDDEN)
+
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        serializer.save(sender=request.user)
+        serializer.save(sender=request.user, conversation=conversation)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
