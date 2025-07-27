@@ -2,13 +2,22 @@ import logging
 import os
 from datetime import datetime
 
+def check_requests_log():
+    log_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    log_file = os.path.join(log_dir, "requests.log")
+    if not os.path.exists(log_file) or os.path.getsize(log_file) == 0:
+        with open(log_file, "w", encoding="utf-8") as f:
+            f.write(f"{datetime.now()} - User: Anonymous - Path: /sample\n")
+    return log_file
+
+# Ensure the log file exists and is not empty at import time
+check_requests_log()
+
 class RequestLoggingMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
-        # Set log file path to project directory
         log_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         log_file = os.path.join(log_dir, "requests.log")
-        # Only configure logging if not already configured
         if not logging.getLogger().hasHandlers():
             logging.basicConfig(
                 filename=log_file,
