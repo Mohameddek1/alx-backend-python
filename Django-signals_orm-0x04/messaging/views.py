@@ -1,3 +1,5 @@
+# Add imports for caching
+from django.views.decorators.cache import cache_page
 # Unread messages inbox view
 @login_required
 def unread_inbox(request):
@@ -23,6 +25,7 @@ def delete_user(request):
 
 # Threaded conversation view
 @login_required
+@cache_page(60)
 def threaded_conversation(request, message_id=None):
     if message_id:
         root_message = get_object_or_404(Message, id=message_id)
