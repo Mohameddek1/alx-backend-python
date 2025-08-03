@@ -1,3 +1,5 @@
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework import viewsets, status, filters
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -48,9 +50,15 @@ class MessageViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = MessageFilter
 
+
     def get_queryset(self):
         # Only return messages where the user is a participant in the conversation
         return Message.objects.filter(conversation__participants=self.request.user).select_related('conversation', 'sender')
+
+    @method_decorator(cache_page(60))
+    def list(self, request, *args, **kwargs):
+        """List messages in a conversation, cached for 60 seconds."""
+        return super().list(request, *args, **kwargs)
 
     def create(self, request, *args, **kwargs):
         conversation_id = request.data.get('conversation_id')
