@@ -20,8 +20,11 @@ def log_message_edit(sender, instance, **kwargs):
     except Message.DoesNotExist:
         return
     if old.content != instance.content:
+        # Try to get the editing user from instance (if set by view/form)
+        edited_by = getattr(instance, '_edited_by', None)
         MessageHistory.objects.create(
             message=instance,
-            old_content=old.content
+            old_content=old.content,
+            edited_by=edited_by
         )
         instance.edited = True
