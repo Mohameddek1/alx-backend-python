@@ -34,6 +34,22 @@ pipeline {
                 junit 'messaging_app/test-results.xml'
             }
         }
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    dockerImage = docker.build("$DOCKERHUB_USERNAME/messaging_app:${env.BUILD_NUMBER}")
+                }
+            }
+        }
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub-credentials-id') {
+                        dockerImage.push()
+                    }
+                }
+            }
+        }
     }
     post {
         always {
